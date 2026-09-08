@@ -1,0 +1,1119 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deepfake Detection — Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy-deep:#02060f;
+  --navy:#061a33;
+  --cyan:#4fe0ff;
+  --cyan-bright:#8ff3ff;
+  --cyan-dim:#1c7fa3;
+  --text-primary:#f3fbff;
+  --text-muted:#9fbdd8;
+  --text-dim:#5c7896;
+  --danger:#ff7b7b;
+  --ok:#3be8b8;
+  --glass:rgba(9,24,46,0.5);
+  --glass-strong:rgba(6,15,30,0.72);
+  --line:rgba(95,214,255,0.2);
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html,body{
+  height:100%;
+}
+
+body{
+  min-height:100vh;
+  font-family:'Inter', sans-serif;
+  color:var(--text-primary);
+  background:radial-gradient(
+    120% 60% at 50% -10%,
+    #0d2b4a 0%,
+    #081a34 35%,
+    #050d1e 68%,
+    #020810 100%
+  );
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* ---------- background ---------- */
+
+.bg-stars{
+  position:fixed;
+  inset:-10%;
+  z-index:-2;
+  pointer-events:none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 80% 10%, rgba(255,255,255,.4), transparent 60%),
+    radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1.5px 1.5px at 30% 80%, rgba(255,255,255,.4), transparent 60%),
+    radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,.3), transparent 60%),
+    radial-gradient(1.5px 1.5px at 45% 40%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,.3), transparent 60%),
+    radial-gradient(1.5px 1.5px at 70% 88%, rgba(255,255,255,.3), transparent 60%);
+  opacity:.55;
+  animation:starDrift 70s linear infinite;
+}
+
+@keyframes starDrift{
+  from{transform:translate(0,0);}
+  to{transform:translate(-50px,-36px);}
+}
+
+.bg-aurora{
+  position:fixed;
+  z-index:-2;
+  border-radius:50%;
+  filter:blur(95px);
+  pointer-events:none;
+}
+
+.bg-aurora-1{
+  width:480px;
+  height:480px;
+  opacity:.16;
+  background:#4fe0ff;
+  top:-140px;
+  left:-120px;
+  animation:auroraFloat1 24s ease-in-out infinite alternate;
+}
+
+.bg-aurora-2{
+  width:420px;
+  height:420px;
+  opacity:.13;
+  background:#3b5fd6;
+  bottom:-150px;
+  right:-110px;
+  animation:auroraFloat2 28s ease-in-out infinite alternate;
+}
+
+@keyframes auroraFloat1{
+  from{transform:translate(0,0) scale(1);}
+  to{transform:translate(50px,35px) scale(1.12);}
+}
+
+@keyframes auroraFloat2{
+  from{transform:translate(0,0) scale(1);}
+  to{transform:translate(-45px,-25px) scale(1.08);}
+}
+
+.bg-watermark{
+  position:fixed;
+  top:50%;
+  left:50%;
+  width:60vw;
+  max-width:700px;
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  opacity:.03;
+  z-index:-1;
+  pointer-events:none;
+}
+
+.bg-watermark svg{
+  width:100%;
+  height:100%;
+}
+
+/* ---------- sidebar ---------- */
+
+.app-shell{
+  display:flex;
+  min-height:100vh;
+  position:relative;
+  z-index:1;
+}
+
+.sidebar{
+  width:252px;
+  flex-shrink:0;
+  background:var(--glass-strong);
+  border-right:1px solid var(--line);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  display:flex;
+  flex-direction:column;
+  padding:22px 16px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  transition:transform .25s ease;
+  z-index:50;
+}
+
+.sidebar-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:26px;
+  padding:0 6px;
+}
+
+.logo-badge{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(
+    circle,
+    rgba(79,224,255,.28),
+    transparent 70%
+  );
+  border:1px solid var(--line);
+  flex-shrink:0;
+}
+
+.logo-badge svg{
+  width:20px;
+  height:20px;
+  color:var(--cyan-bright);
+}
+
+.logo-text{
+  font-family:'Space Grotesk',sans-serif;
+  line-height:1.18;
+}
+
+.logo-text b{
+  display:block;
+  font-size:14px;
+  font-weight:700;
+}
+
+.logo-text span{
+  display:block;
+  font-size:11px;
+  color:var(--cyan);
+  font-weight:600;
+}
+
+.side-nav{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  flex:1;
+  overflow-y:auto;
+}
+
+.side-link{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:10px 12px;
+  border-radius:10px;
+  color:var(--text-muted);
+  text-decoration:none;
+  font-size:13px;
+  font-family:'Inter';
+  transition:background .15s ease,color .15s ease;
+}
+
+.side-link svg{
+  width:17px;
+  height:17px;
+  flex-shrink:0;
+}
+
+.side-link:hover{
+  background:rgba(79,224,255,.08);
+  color:var(--cyan-bright);
+}
+
+.side-link.active{
+  background:linear-gradient(
+    90deg,
+    rgba(79,224,255,.18),
+    rgba(79,224,255,.02)
+  );
+  color:var(--cyan-bright);
+  box-shadow:inset 2px 0 0 var(--cyan);
+  font-weight:600;
+}
+
+.side-divider{
+  height:1px;
+  background:var(--line);
+  margin:12px 6px;
+  opacity:.6;
+}
+
+.side-logout{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:8px;
+  padding:11px;
+  border-radius:10px;
+  border:1px solid rgba(255,123,123,.35);
+  background:rgba(255,123,123,.08);
+  color:var(--danger);
+  font-family:'Inter';
+  font-size:13px;
+  cursor:pointer;
+}
+
+.side-logout:hover{
+  background:rgba(255,123,123,.16);
+  border-color:var(--danger);
+}
+
+.side-logout svg{
+  width:15px;
+  height:15px;
+}
+
+/* ---------- main ---------- */
+
+.main{
+  flex:1;
+  min-width:0;
+  padding:36px 42px;
+  position:relative;
+  z-index:1;
+}
+
+.topbar-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.page-heading h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:27px;
+}
+
+.page-heading p{
+  margin-top:6px;
+  color:var(--text-muted);
+  font-size:13.5px;
+  max-width:480px;
+}
+
+.user-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 14px 7px 7px;
+  border-radius:30px;
+  border:1px solid var(--line);
+  background:rgba(6,15,30,.55);
+  text-decoration:none;
+  color:var(--text-primary);
+  font-size:13px;
+  font-family:'Inter';
+}
+
+.user-chip:hover{
+  border-color:var(--cyan);
+}
+
+.avatar{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(
+    circle,
+    rgba(79,224,255,.3),
+    transparent 70%
+  );
+  border:1px solid var(--line);
+}
+
+.avatar svg{
+  width:12px;
+  height:12px;
+  color:var(--cyan-bright);
+}
+
+/* ---------- welcome ---------- */
+
+.welcome-block{
+  margin-bottom:28px;
+}
+
+.welcome-block h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:24px;
+  margin-bottom:5px;
+}
+
+.welcome-block h2 .accent{
+  color:var(--cyan);
+  text-shadow:0 0 16px rgba(79,224,255,.4);
+}
+
+.welcome-block p{
+  color:var(--text-muted);
+  font-size:14px;
+}
+
+/* ---------- modules ---------- */
+
+.module-stack{
+  display:flex;
+  flex-direction:column;
+  gap:13px;
+  max-width:640px;
+}
+
+.module-btn{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  width:100%;
+  text-align:left;
+  padding:18px;
+  border-radius:16px;
+  background:linear-gradient(
+    180deg,
+    rgba(9,24,46,.6),
+    rgba(6,17,33,.6)
+  );
+  border:1px solid var(--line);
+  cursor:pointer;
+  overflow:hidden;
+  text-decoration:none;
+  color:inherit;
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .25s ease;
+  animation:fadeUp .5s ease backwards;
+}
+
+.module-btn:nth-child(1){
+  animation-delay:.02s;
+}
+
+.module-btn:nth-child(2){
+  animation-delay:.08s;
+}
+
+.module-btn:nth-child(3){
+  animation-delay:.14s;
+}
+
+@keyframes fadeUp{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.module-btn:hover{
+  transform:translateY(-3px);
+  border-color:var(--accent);
+  box-shadow:
+    0 0 26px var(--accent-glow),
+    0 12px 26px rgba(2,6,15,.4);
+}
+
+.module-btn:active{
+  transform:translateY(-1px) scale(.99);
+}
+
+.module-icon{
+  flex-shrink:0;
+  width:52px;
+  height:52px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--accent-bg);
+  border:1px solid var(--accent-border);
+  box-shadow:0 0 14px var(--accent-glow) inset;
+}
+
+.module-icon svg{
+  width:24px;
+  height:24px;
+  color:var(--accent);
+}
+
+.module-text{
+  flex:1;
+}
+
+.m-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:15px;
+  margin-bottom:3px;
+}
+
+.m-sub{
+  font-size:11.5px;
+  color:var(--text-muted);
+}
+
+.module-arrow{
+  flex-shrink:0;
+  width:19px;
+  height:19px;
+  color:var(--text-dim);
+  transition:transform .18s ease,color .18s ease;
+}
+
+.module-btn:hover .module-arrow{
+  transform:translateX(4px);
+  color:var(--accent);
+}
+
+.foot-note{
+  text-align:center;
+  margin-top:30px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:.14em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  max-width:640px;
+}
+
+/* ---------- mobile ---------- */
+
+.menu-toggle{
+  display:none;
+}
+
+.sidebar-backdrop{
+  display:none;
+}
+
+@media (max-width:900px){
+
+  .sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    transform:translateX(-100%);
+    box-shadow:20px 0 50px rgba(0,0,0,.5);
+  }
+
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  .sidebar-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:40;
+  }
+
+  .sidebar-backdrop.show{
+    display:block;
+  }
+
+  .menu-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:rgba(6,15,30,.6);
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+
+  .menu-toggle svg{
+    width:18px;
+    height:18px;
+  }
+
+  .main{
+    padding:22px 16px;
+  }
+
+  .page-heading h1{
+    font-size:22px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg-stars"></div>
+<div class="bg-aurora bg-aurora-1"></div>
+<div class="bg-aurora bg-aurora-2"></div>
+
+<div class="bg-watermark">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1">
+  <path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4z"/>
+  <path d="M9 12l2 2 4-4"/>
+</svg>
+</div>
+
+<div class="app-shell">
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="sidebar" id="sidebar">
+
+<!-- BRAND -->
+<div class="sidebar-brand">
+
+<div class="logo-badge">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4z"/>
+  <path d="M9 12l2 2 4-4"/>
+</svg>
+</div>
+
+<div class="logo-text">
+<b>Deepfake</b>
+<span>Detection</span>
+</div>
+
+</div>
+
+
+<!-- NAVIGATION -->
+<nav class="side-nav">
+
+<!-- HOME -->
+<a class="side-link active" href="home.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <path d="M4 11.5 12 4l8 7.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  <path d="M6 10v9a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>
+<span>Home</span>
+</a>
+
+
+<!-- IMAGE -->
+<a class="side-link" href="image_detection.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <rect x="3" y="4" width="18" height="16" rx="2.5"/>
+  <circle cx="8.5" cy="9.5" r="1.6"/>
+  <path d="M21 15l-5.5-5.5L7 18"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>
+<span>Image Detection</span>
+</a>
+
+
+<!-- VIDEO -->
+<a class="side-link" href="video_detection.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <rect x="3" y="6" width="13" height="12" rx="2.5"/>
+  <path d="M16 10.5 21 7.5v9L16 13.5"
+        stroke-linejoin="round"/>
+</svg>
+<span>Video Detection</span>
+</a>
+
+
+<!-- AUDIO -->
+<a class="side-link" href="audio_detection.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.8">
+  <path d="M4 11v2M8 8v8M12 5v14M16 8v8M20 11v2"
+        stroke-linecap="round"/>
+</svg>
+<span>Audio Detection</span>
+</a>
+
+
+<div class="side-divider"></div>
+
+
+<!-- HISTORY -->
+<a class="side-link" href="history.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <path d="M3 12a9 9 0 1 0 3-6.7"
+        stroke-linecap="round"/>
+  <path d="M3 4v5h5"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  <path d="M12 8v4.5l3 2"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>
+<span>History</span>
+</a>
+
+
+<!-- SETTINGS -->
+<a class="side-link" href="settings.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <circle cx="12" cy="12" r="3"/>
+  <path d="M19.4 13.5a1.7 1.7 0 0 0 0-3l1-1.7-2-2-1.7 1a1.7 1.7 0 0 0-3 0l-.5-2h-2.4l-.5 2a1.7 1.7 0 0 0-3 0l-1.7-1-2 2 1 1.7a1.7 1.7 0 0 0 0 3l-1 1.7 2 2 1.7-1a1.7 1.7 0 0 0 3 0l.5 2h2.4l.5-2a1.7 1.7 0 0 0 3 0l1.7 1 2-2z"
+        stroke-linejoin="round"/>
+</svg>
+<span>Settings</span>
+</a>
+
+
+<!-- ABOUT -->
+<a class="side-link" href="about.html">
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M12 10.5v6"
+        stroke-linecap="round"/>
+  <circle cx="12" cy="7.5" r="0.9"
+          fill="currentColor"
+          stroke="none"/>
+</svg>
+<span>About Us</span>
+</a>
+
+</nav>
+
+
+<!-- LOGOUT -->
+<button class="side-logout" id="logoutBtn">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  <path d="M15 8l4 4-4 4M9 12h10"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>
+
+<span>Logout</span>
+
+</button>
+
+</div>
+
+
+<!-- MAIN -->
+<main class="main">
+
+<div class="topbar-row">
+
+<div class="topbar-left">
+
+<button class="menu-toggle" id="menuToggle">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.8">
+  <path d="M4 7h16M4 12h16M4 17h16"
+        stroke-linecap="round"/>
+</svg>
+
+</button>
+
+<div class="page-heading">
+
+<h1>Dashboard</h1>
+
+<p>
+Overview of your deepfake detection tools
+</p>
+
+</div>
+
+</div>
+
+
+<a class="user-chip" href="settings.html">
+
+<span class="avatar">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+  <circle cx="12" cy="8" r="3.4"/>
+  <path d="M4.5 20c1.5-4 4-6 7.5-6s6 2 7.5 6"
+        stroke-linecap="round"/>
+</svg>
+
+</span>
+
+<span id="userChipName">User</span>
+
+</a>
+
+</div>
+
+
+<!-- WELCOME -->
+<div class="welcome-block">
+
+<h2>
+Welcome,
+<span class="accent" id="welcomeName">User</span>!
+</h2>
+
+<p>Select a Deepfake Detection Module</p>
+
+</div>
+
+
+<!-- DETECTION MODULES -->
+<div class="module-stack">
+
+
+<!-- IMAGE DETECTION -->
+<a class="module-btn"
+   href="image_detection.html"
+   style="
+   --accent:#7c6cf6;
+   --accent-bg:rgba(124,108,246,.16);
+   --accent-border:rgba(124,108,246,.4);
+   --accent-glow:rgba(124,108,246,.32);
+   ">
+
+<div class="module-icon">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+
+<rect x="3" y="4"
+      width="18"
+      height="16"
+      rx="2.5"/>
+
+<circle cx="8.5"
+        cy="9.5"
+        r="1.6"/>
+
+<path d="M21 15l-5.5-5.5L7 18"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+<div class="module-text">
+
+<div class="m-title">
+Image Detection
+</div>
+
+<div class="m-sub">
+Upload an image and detect if it is Real or Fake
+</div>
+
+</div>
+
+<div class="module-arrow">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2">
+
+<path d="M9 6l6 6-6 6"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+</a>
+
+
+<!-- VIDEO DETECTION -->
+<a class="module-btn"
+   href="video_detection.html"
+   style="
+   --accent:#34e0a1;
+   --accent-bg:rgba(52,224,161,.16);
+   --accent-border:rgba(52,224,161,.4);
+   --accent-glow:rgba(52,224,161,.32);
+   ">
+
+<div class="module-icon">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.6">
+
+<rect x="3" y="6"
+      width="13"
+      height="12"
+      rx="2.5"/>
+
+<path d="M16 10.5 21 7.5v9L16 13.5"
+      stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+<div class="module-text">
+
+<div class="m-title">
+Video Detection
+</div>
+
+<div class="m-sub">
+Upload a video and detect if it is Real or Fake
+</div>
+
+</div>
+
+<div class="module-arrow">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2">
+
+<path d="M9 6l6 6-6 6"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+</a>
+
+
+<!-- AUDIO DETECTION -->
+<a class="module-btn"
+   href="audio_detection.html"
+   style="
+   --accent:#29e0c9;
+   --accent-bg:rgba(41,224,201,.16);
+   --accent-border:rgba(41,224,201,.4);
+   --accent-glow:rgba(41,224,201,.32);
+   ">
+
+<div class="module-icon">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="1.8">
+
+<path d="M4 11v2M8 8v8M12 5v14M16 8v8M20 11v2"
+      stroke-linecap="round"/>
+
+</svg>
+
+</div>
+
+<div class="module-text">
+
+<div class="m-title">
+Audio Detection
+</div>
+
+<div class="m-sub">
+Upload audio and detect if the voice is Real or Fake
+</div>
+
+</div>
+
+<div class="module-arrow">
+
+<svg viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2">
+
+<path d="M9 6l6 6-6 6"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+</a>
+
+</div>
+
+
+<p class="foot-note">
+Detect &middot; Verify &middot; Protect
+</p>
+
+</main>
+
+</div>
+
+
+<script>
+
+(function(){
+
+  var raw =
+    localStorage.getItem('df_currentUser') ||
+    sessionStorage.getItem('df_currentUser');
+
+  if(!raw){
+    window.location.href = 'login2.html';
+    return;
+  }
+
+  var user = JSON.parse(raw);
+
+  document.getElementById('userChipName').textContent =
+    user.fullName || user.username;
+
+
+  document.getElementById('logoutBtn')
+    .addEventListener('click', function(){
+
+      localStorage.removeItem('df_currentUser');
+      sessionStorage.removeItem('df_currentUser');
+
+      window.location.href = 'login2.html';
+
+    });
+
+
+  var sidebar =
+    document.getElementById('sidebar');
+
+  var backdrop =
+    document.getElementById('sidebarBackdrop');
+
+  var toggle =
+    document.getElementById('menuToggle');
+
+
+  if(toggle){
+
+    toggle.addEventListener('click', function(){
+
+      sidebar.classList.add('open');
+      backdrop.classList.add('show');
+
+    });
+
+
+    backdrop.addEventListener('click', function(){
+
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('show');
+
+    });
+
+  }
+
+
+  // Shared history logger
+  window.dfLogHistory = function(entry){
+
+    try{
+
+      var list =
+        JSON.parse(
+          localStorage.getItem('df_history')
+        ) || [];
+
+      entry.timestamp =
+        new Date().toISOString();
+
+      list.unshift(entry);
+
+      if(list.length > 50)
+        list = list.slice(0, 50);
+
+      localStorage.setItem(
+        'df_history',
+        JSON.stringify(list)
+      );
+
+    }catch(e){}
+
+  };
+
+
+  document.getElementById('welcomeName').textContent =
+    user.fullName || user.username;
+
+})();
+
+</script>
+
+</body>
+</html>
+```

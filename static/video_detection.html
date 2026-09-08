@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Deepfake Detection - Video Detection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+
+        :root {
+            --navy-deep: #02060f;
+            --navy: #061a33;
+            --cyan: #4fe0ff;
+            --cyan-bright: #8ff3ff;
+            --cyan-dim: #1c7fa3;
+
+            --text-primary: #f3fbff;
+            --text-muted: #9fbdd8;
+            --text-dim: #5c7896;
+
+            --danger: #ff7b7b;
+            --ok: #3be8b8;
+
+            --glass: rgba(9, 24, 46, 0.5);
+            --glass-strong: rgba(6, 15, 30, 0.72);
+
+            --line: rgba(95, 214, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+
+            font-family: "Inter", sans-serif;
+
+            color: var(--text-primary);
+
+            background:
+                radial-gradient(
+                    120% 60% at 50% -10%,
+                    #0d2b4a 0%,
+                    #081a34 35%,
+                    #050d1e 68%,
+                    #020810 100%
+                );
+
+            overflow-x: hidden;
+        }
+
+        /* BACKGROUND */
+
+        .bg-stars {
+            position: fixed;
+            inset: 0;
+
+            z-index: -2;
+
+            background-image:
+                radial-gradient(
+                    1.5px 1.5px at 10% 20%,
+                    rgba(255,255,255,.55),
+                    transparent 60%
+                ),
+                radial-gradient(
+                    1.5px 1.5px at 80% 10%,
+                    rgba(255,255,255,.4),
+                    transparent 60%
+                ),
+                radial-gradient(
+                    1px 1px at 60% 70%,
+                    rgba(255,255,255,.35),
+                    transparent 60%
+                ),
+                radial-gradient(
+                    1.5px 1.5px at 30% 80%,
+                    rgba(255,255,255,.4),
+                    transparent 60%
+                ),
+                radial-gradient(
+                    1px 1px at 90% 60%,
+                    rgba(255,255,255,.3),
+                    transparent 60%
+                );
+        }
+
+        .bg-aurora {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(95px);
+
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .bg-aurora-1 {
+            width: 480px;
+            height: 480px;
+
+            opacity: .16;
+
+            background: #4fe0ff;
+
+            top: -140px;
+            left: -120px;
+        }
+
+        .bg-aurora-2 {
+            width: 420px;
+            height: 420px;
+
+            opacity: .13;
+
+            background: #3b5fd6;
+
+            bottom: -150px;
+            right: -110px;
+        }
+
+        /* APP */
+
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 252px;
+            flex-shrink: 0;
+
+            background: var(--glass-strong);
+
+            border-right: 1px solid var(--line);
+
+            backdrop-filter: blur(18px);
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 22px 16px;
+
+            position: sticky;
+            top: 0;
+
+            height: 100vh;
+
+            z-index: 50;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            margin-bottom: 26px;
+
+            padding: 0 6px;
+        }
+
+        .logo-badge {
+            width: 38px;
+            height: 38px;
+
+            border-radius: 11px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(79,224,255,.08);
+
+            border: 1px solid var(--line);
+        }
+
+        .logo-badge svg {
+            width: 20px;
+            height: 20px;
+
+            color: var(--cyan-bright);
+        }
+
+        .logo-text {
+            font-family: "Space Grotesk", sans-serif;
+        }
+
+        .logo-text b {
+            display: block;
+            font-size: 14px;
+        }
+
+        .logo-text span {
+            display: block;
+
+            font-size: 11px;
+
+            color: var(--cyan);
+        }
+
+        .side-nav {
+            display: flex;
+            flex-direction: column;
+
+            gap: 3px;
+
+            flex: 1;
+
+            overflow-y: auto;
+        }
+
+        .side-link {
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            padding: 10px 12px;
+
+            border-radius: 10px;
+
+            color: var(--text-muted);
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            transition: .15s;
+        }
+
+        .side-link svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .side-link:hover {
+            background: rgba(79,224,255,.08);
+            color: var(--cyan-bright);
+        }
+
+        .side-link.active {
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(79,224,255,.18),
+                    rgba(79,224,255,.02)
+                );
+
+            color: var(--cyan-bright);
+
+            box-shadow:
+                inset 2px 0 0 var(--cyan);
+        }
+
+        .side-divider {
+            height: 1px;
+
+            background: var(--line);
+
+            margin: 12px 6px;
+        }
+
+        .side-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            padding: 11px;
+
+            border-radius: 10px;
+
+            border: 1px solid rgba(255,123,123,.35);
+
+            background: rgba(255,123,123,.08);
+
+            color: var(--danger);
+
+            cursor: pointer;
+        }
+
+        .side-logout svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        /* MAIN */
+
+        .main {
+            flex: 1;
+
+            min-width: 0;
+
+            padding: 36px 42px;
+        }
+
+        .topbar-row {
+            display: flex;
+
+            justify-content: space-between;
+            align-items: flex-start;
+
+            gap: 16px;
+
+            margin-bottom: 22px;
+        }
+
+        .page-heading h1 {
+            font-family: "Space Grotesk", sans-serif;
+
+            font-size: 27px;
+            font-weight: 700;
+        }
+
+        .accent {
+            color: var(--cyan);
+
+            text-shadow:
+                0 0 18px rgba(79,224,255,.45);
+        }
+
+        .page-heading p {
+            margin-top: 6px;
+
+            color: var(--text-muted);
+
+            font-size: 13.5px;
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 7px 14px 7px 7px;
+
+            border-radius: 30px;
+
+            border: 1px solid var(--line);
+
+            background: rgba(6,15,30,.55);
+
+            color: var(--text-primary);
+
+            text-decoration: none;
+
+            font-size: 13px;
+        }
+
+        .avatar {
+            width: 24px;
+            height: 24px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(79,224,255,.15);
+
+            border: 1px solid var(--line);
+        }
+
+        .avatar svg {
+            width: 12px;
+            height: 12px;
+
+            color: var(--cyan-bright);
+        }
+
+        /* CARD */
+
+        .panel-card {
+            width: 100%;
+            max-width: 700px;
+
+            background: var(--glass);
+
+            border: 1px solid var(--line);
+
+            border-radius: 18px;
+
+            padding: 22px 20px;
+
+            backdrop-filter: blur(14px);
+
+            box-shadow:
+                0 20px 50px rgba(2,6,15,.4);
+        }
+
+        /* BUTTONS */
+
+        .btn {
+            border-radius: 11px;
+
+            font-family: "Space Grotesk", sans-serif;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            border: none;
+
+            transition: .15s;
+        }
+
+        .btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .btn-row {
+            display: flex;
+
+            gap: 10px;
+
+            margin-bottom: 14px;
+        }
+
+        .btn-outline {
+            background: rgba(3,10,22,.55);
+
+            border: 1px solid var(--line);
+
+            color: var(--text-primary);
+
+            padding: 12px 16px;
+
+            font-size: 13px;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--cyan);
+
+            color: var(--cyan-bright);
+        }
+
+        .btn-primary {
+            width: 100%;
+
+            padding: 15px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--cyan-bright),
+                    var(--cyan)
+                );
+
+            color: #02131c;
+
+            font-size: 15px;
+
+            box-shadow:
+                0 0 22px rgba(79,224,255,.5);
+        }
+
+        .btn-danger {
+            width: 100%;
+
+            padding: 13px;
+
+            border: 1px solid rgba(255,123,123,.35);
+
+            background: rgba(255,123,123,.08);
+
+            color: var(--danger);
+
+            font-size: 13.5px;
+        }
+
+        .btn-ghost {
+            width: 100%;
+
+            padding: 13px;
+
+            border: 1px solid var(--line);
+
+            background: transparent;
+
+            color: var(--text-muted);
+
+            font-size: 13.5px;
+        }
+
+        /* DROPZONE */
+
+        .dropzone {
+            position: relative;
+
+            border: 1.5px dashed var(--line);
+
+            border-radius: 14px;
+
+            padding: 30px 16px;
+
+            text-align: center;
+
+            cursor: pointer;
+
+            margin-bottom: 14px;
+
+            transition: .15s;
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--cyan);
+
+            background: rgba(79,224,255,.05);
+        }
+
+        .dropzone svg {
+            width: 30px;
+            height: 30px;
+
+            color: var(--cyan-dim);
+
+            margin-bottom: 10px;
+        }
+
+        .dropzone p {
+            font-size: 13px;
+
+            color: var(--text-muted);
+        }
+
+        .dropzone .hint {
+            margin-top: 5px;
+
+            font-family: "JetBrains Mono", monospace;
+
+            font-size: 10.5px;
+
+            color: var(--text-dim);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* FILE INFO */
+
+        .file-info {
+            display: none;
+
+            align-items: center;
+
+            gap: 8px;
+
+            font-family: "JetBrains Mono", monospace;
+
+            font-size: 11.5px;
+
+            color: var(--cyan-bright);
+
+            background: rgba(79,224,255,.06);
+
+            border: 1px solid var(--line);
+
+            border-radius: 10px;
+
+            padding: 10px 12px;
+
+            margin-bottom: 14px;
+
+            word-break: break-all;
+        }
+
+        .file-info.show {
+            display: flex;
+        }
+
+        /* PREVIEW */
+
+        .preview-wrap {
+            display: none;
+
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            border: 1px solid var(--line);
+
+            margin-bottom: 14px;
+
+            background: rgba(0,0,0,.35);
+        }
+
+        .preview-wrap.show {
+            display: block;
+        }
+
+        .preview-wrap video {
+            width: 100%;
+
+            max-height: 350px;
+
+            object-fit: contain;
+
+            display: block;
+
+            background: #000;
+        }
+
+        /* ERROR */
+
+        .banner {
+            display: none;
+
+            padding: 11px;
+
+            border-radius: 10px;
+
+            font-size: 12.5px;
+
+            margin-bottom: 14px;
+
+            text-align: center;
+        }
+
+        .banner.show {
+            display: block;
+        }
+
+        .banner.error {
+            color: var(--danger);
+
+            background: rgba(255,123,123,.08);
+
+            border: 1px solid rgba(255,123,123,.35);
+        }
+
+        .banner.success {
+            color: var(--ok);
+
+            background: rgba(61,232,184,.08);
+
+            border: 1px solid rgba(61,232,184,.35);
+        }
+
+        /* LOADING */
+
+        .scan-status {
+            display: none;
+
+            align-items: center;
+
+            gap: 10px;
+
+            font-family: "JetBrains Mono", monospace;
+
+            font-size: 11.5px;
+
+            color: var(--cyan);
+
+            margin-bottom: 8px;
+        }
+
+        .scan-status.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+
+            border: 2px solid rgba(79,224,255,.25);
+
+            border-top-color: var(--cyan);
+
+            border-radius: 50%;
+
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-bar-track {
+            height: 6px;
+
+            border-radius: 6px;
+
+            background: rgba(255,255,255,.08);
+
+            overflow: hidden;
+
+            margin: 10px 0 14px;
+
+            display: none;
+        }
+
+        .loading-bar-track.show {
+            display: block;
+        }
+
+        .loading-bar-fill {
+            height: 100%;
+
+            width: 40%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--cyan-bright),
+                    var(--cyan),
+                    transparent
+                );
+
+            animation: loading 1.15s infinite;
+        }
+
+        @keyframes loading {
+            from {
+                transform: translateX(-120%);
+            }
+
+            to {
+                transform: translateX(300%);
+            }
+        }
+
+        /* RESULT */
+
+        .result-panel {
+            display: none;
+
+            border-radius: 16px;
+
+            padding: 22px 18px;
+
+            margin-bottom: 14px;
+
+            border: 1px solid var(--line);
+
+            background: rgba(3,10,22,.55);
+        }
+
+        .result-panel.show {
+            display: block;
+        }
+
+        .result-top {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 25px;
+        }
+
+        .confidence-ring {
+            position: relative;
+
+            width: 132px;
+            height: 132px;
+        }
+
+        .confidence-ring svg {
+            width: 100%;
+            height: 100%;
+
+            transform: rotate(-90deg);
+        }
+
+        .confidence-ring circle {
+            fill: none;
+
+            stroke-width: 9;
+        }
+
+        .ring-bg {
+            stroke: rgba(255,255,255,.08);
+        }
+
+        .ring-fill {
+            stroke: var(--cyan);
+
+            stroke-linecap: round;
+
+            stroke-dasharray: 326.7;
+
+            stroke-dashoffset: 326.7;
+
+            transition:
+                stroke-dashoffset 1s ease,
+                stroke .3s ease;
+        }
+
+        .confidence-ring.ok .ring-fill {
+            stroke: var(--ok);
+        }
+
+        .confidence-ring.danger .ring-fill {
+            stroke: var(--danger);
+        }
+
+        .ring-center {
+            position: absolute;
+
+            inset: 0;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+        .ring-percent {
+            font-family: "Space Grotesk", sans-serif;
+
+            font-size: 23px;
+
+            font-weight: 700;
+        }
+
+        .ring-caption {
+            font-family: "JetBrains Mono", monospace;
+
+            font-size: 8.5px;
+
+            color: var(--text-dim);
+        }
+
+        .result-verdict {
+            text-align: center;
+
+            min-width: 160px;
+        }
+
+        .v-icon {
+            width: 34px;
+            height: 34px;
+
+            margin: 0 auto 8px;
+        }
+
+        .v-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .v-word {
+            font-family: "Space Grotesk", sans-serif;
+
+            font-weight: 700;
+
+            font-size: 24px;
+        }
+
+        .result-verdict.ok .v-word {
+            color: var(--ok);
+        }
+
+        .result-verdict.danger .v-word {
+            color: var(--danger);
+        }
+
+        .v-caption {
+            margin-top: 5px;
+
+            font-size: 12px;
+
+            color: var(--text-muted);
+        }
+
+        /* RESULT DETAILS */
+
+        .result-grid {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 10px;
+
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: rgba(3,10,22,.5);
+
+            border: 1px solid var(--line);
+
+            border-radius: 10px;
+
+            padding: 10px 12px;
+        }
+
+        .result-item.full {
+            grid-column: 1 / -1;
+        }
+
+        .r-label {
+            font-family: "JetBrains Mono", monospace;
+
+            font-size: 9px;
+
+            text-transform: uppercase;
+
+            color: var(--text-dim);
+
+            margin-bottom: 4px;
+        }
+
+        .r-value {
+            font-family: "Space Grotesk", sans-serif;
+
+            font-weight: 600;
+
+            font-size: 13px;
+
+            word-break: break-word;
+        }
+
+        /* ACTIONS */
+
+        .action-stack > * {
+            margin-bottom: 10px;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                position: fixed;
+
+                left: 0;
+
+                transform: translateX(-100%);
+
+                transition: transform .25s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                padding: 22px 16px;
+            }
+
+            .topbar-row {
+                flex-direction: column;
+            }
+
+            .page-heading h1 {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-item.full {
+                grid-column: auto;
+            }
+
+            .result-top {
+                flex-direction: column;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="bg-stars"></div>
+<div class="bg-aurora bg-aurora-1"></div>
+<div class="bg-aurora bg-aurora-2"></div>
+
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+
+            <div class="logo-badge">
+
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.6">
+
+                    <path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4z"/>
+                    <path d="M9 12l2 2 4-4"/>
+
+                </svg>
+
+            </div>
+
+            <div class="logo-text">
+
+                <b>Deepfake</b>
+                <span>Detection</span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="side-nav">
+
+            <a class="side-link" href="home.html">
+                <span>⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a class="side-link" href="image_detection.html">
+                <span>▧</span>
+                <span>Image Detection</span>
+            </a>
+
+            <a class="side-link active" href="video_detection.html">
+                <span>▶</span>
+                <span>Video Detection</span>
+            </a>
+
+            
+
+            <a class="side-link" href="audio_detection.html">
+                <span>≋</span>
+                <span>Audio Detection</span>
+            </a>
+
+            <div class="side-divider"></div>
+
+            <a class="side-link" href="history.html">
+                <span>◷</span>
+                <span>History</span>
+            </a>
+
+            <a class="side-link" href="settings.html">
+                <span>⚙</span>
+                <span>Settings</span>
+            </a>
+
+            <a class="side-link" href="about.html">
+                <span>ⓘ</span>
+                <span>About Us</span>
+            </a>
+
+        </nav>
+
+
+        <button class="side-logout" id="logoutBtn">
+
+            <span>⇥</span>
+
+            <span>Logout</span>
+
+        </button>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <div class="topbar-row">
+
+            <div class="page-heading">
+
+                <h1>
+                    Video
+                    <span class="accent">
+                        Deepfake Detection
+                    </span>
+                </h1>
+
+                <p>
+                    Upload a video to analyze and detect if it is Real or Fake.
+                </p>
+
+            </div>
+
+
+            <a class="user-chip" href="settings.html">
+
+                <span class="avatar">
+                    ◉
+                </span>
+
+                <span id="userChipName">
+                    User
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- CARD -->
+
+        <div class="panel-card">
+
+
+            <!-- UPLOAD BUTTON -->
+
+            <div class="btn-row">
+
+                <button
+                    class="btn btn-outline"
+                    id="uploadBtn"
+                    type="button">
+
+                    ▶
+                    <span>
+                        Upload Video
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <!-- FILE INPUT -->
+
+            <input
+                type="file"
+                id="fileInput"
+                accept=".mp4,.avi,.mov,video/mp4,video/x-msvideo,video/quicktime">
+
+
+            <!-- DROPZONE -->
+
+            <div
+                class="dropzone"
+                id="dropzone">
+
+                <div style="font-size:32px;margin-bottom:10px;">
+                    ↑
+                </div>
+
+                <p>
+                    Drag &amp; drop your video here
+                </p>
+
+                <p class="hint">
+                    MP4 · AVI · MOV
+                </p>
+
+            </div>
+
+
+            <!-- ERROR -->
+
+            <div
+                class="banner error"
+                id="errorBanner">
+            </div>
+
+
+            <!-- FILE NAME -->
+
+            <div
+                class="file-info"
+                id="fileInfo">
+
+                <span>📄</span>
+
+                <span id="fileName">
+                </span>
+
+            </div>
+
+
+            <!-- VIDEO PREVIEW -->
+
+            <div
+                class="preview-wrap"
+                id="previewWrap">
+            </div>
+
+
+            <!-- SCANNING -->
+
+            <div
+                class="scan-status"
+                id="scanStatus">
+
+                <span class="spinner"></span>
+
+                <span>
+                    Analyzing video, please wait...
+                </span>
+
+            </div>
+
+
+            <div
+                class="loading-bar-track"
+                id="loadingBar">
+
+                <div class="loading-bar-fill"></div>
+
+            </div>
+
+
+            <!-- RESULT -->
+
+            <div
+                class="result-panel"
+                id="resultPanel">
+
+
+                <div class="result-top">
+
+
+                    <!-- CONFIDENCE -->
+
+                    <div
+                        class="confidence-ring"
+                        id="confidenceRing">
+
+                        <svg viewBox="0 0 120 120">
+
+                            <circle
+                                class="ring-bg"
+                                cx="60"
+                                cy="60"
+                                r="52">
+                            </circle>
+
+                            <circle
+                                class="ring-fill"
+                                id="ringFill"
+                                cx="60"
+                                cy="60"
+                                r="52">
+                            </circle>
+
+                        </svg>
+
+
+                        <div class="ring-center">
+
+                            <span
+                                class="ring-percent"
+                                id="ringPercent">
+
+                                0%
+
+                            </span>
+
+                            <span class="ring-caption">
+                                Confidence
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- VERDICT -->
+
+                    <div
+                        class="result-verdict"
+                        id="resultVerdict">
+
+                        <div
+                            class="v-icon"
+                            id="verdictIcon">
+                        </div>
+
+                        <div
+                            class="v-word"
+                            id="verdictWord">
+
+                            —
+
+                        </div>
+
+                        <div
+                            class="v-caption"
+                            id="verdictCaption">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- DETAILS -->
+
+                <div class="result-grid">
+
+
+                    <div class="result-item">
+
+                        <div class="r-label">
+                            Processing Time
+                        </div>
+
+                        <div
+                            class="r-value"
+                            id="rTime">
+
+                            —
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-item">
+
+                        <div class="r-label">
+                            AI Model Used
+                        </div>
+
+                        <div
+                            class="r-value"
+                            id="rModel">
+
+                            —
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-item full">
+
+                        <div class="r-label">
+                            Uploaded File Name
+                        </div>
+
+                        <div
+                            class="r-value"
+                            id="rFile">
+
+                            —
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="action-stack">
+
+                <button
+                    class="btn btn-primary"
+                    id="detectBtn"
+                    type="button"
+                    disabled>
+
+                    Detect Deepfake
+
+                </button>
+
+
+                <button
+                    class="btn btn-danger"
+                    id="clearBtn"
+                    type="button">
+
+                    Clear
+
+                </button>
+
+
+                <button
+                    class="btn btn-ghost"
+                    id="backHomeBtn"
+                    type="button">
+
+                    Back to Home
+
+                </button>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    /* =========================================================
+       LOGIN CHECK
+       ========================================================= */
+
+    var raw =
+        localStorage.getItem("df_currentUser") ||
+        sessionStorage.getItem("df_currentUser");
+
+
+    if (!raw) {
+
+        window.location.href = "login2.html";
+
+        return;
+    }
+
+
+    var user;
+
+    try {
+
+        user = JSON.parse(raw);
+
+    } catch (e) {
+
+        localStorage.removeItem("df_currentUser");
+        sessionStorage.removeItem("df_currentUser");
+
+        window.location.href = "login2.html";
+
+        return;
+    }
+
+
+    var userName =
+        user.fullName ||
+        user.username ||
+        "User";
+
+
+    document.getElementById("userChipName").textContent =
+        userName;
+
+
+    /* =========================================================
+       LOGOUT
+       ========================================================= */
+
+    document
+        .getElementById("logoutBtn")
+        .addEventListener("click", function () {
+
+            localStorage.removeItem("df_currentUser");
+            sessionStorage.removeItem("df_currentUser");
+
+            window.location.href = "login2.html";
+
+        });
+
+
+    /* =========================================================
+       ELEMENTS
+       ========================================================= */
+
+    var uploadBtn =
+        document.getElementById("uploadBtn");
+
+    var fileInput =
+        document.getElementById("fileInput");
+
+    var dropzone =
+        document.getElementById("dropzone");
+
+    var fileInfo =
+        document.getElementById("fileInfo");
+
+    var fileNameEl =
+        document.getElementById("fileName");
+
+    var previewWrap =
+        document.getElementById("previewWrap");
+
+    var errorBanner =
+        document.getElementById("errorBanner");
+
+    var detectBtn =
+        document.getElementById("detectBtn");
+
+    var clearBtn =
+        document.getElementById("clearBtn");
+
+    var backHomeBtn =
+        document.getElementById("backHomeBtn");
+
+    var scanStatus =
+        document.getElementById("scanStatus");
+
+    var loadingBar =
+        document.getElementById("loadingBar");
+
+    var resultPanel =
+        document.getElementById("resultPanel");
+
+    var ring =
+        document.getElementById("confidenceRing");
+
+    var ringFill =
+        document.getElementById("ringFill");
+
+    var ringPercent =
+        document.getElementById("ringPercent");
+
+    var verdictEl =
+        document.getElementById("resultVerdict");
+
+    var verdictIcon =
+        document.getElementById("verdictIcon");
+
+    var verdictWord =
+        document.getElementById("verdictWord");
+
+    var verdictCaption =
+        document.getElementById("verdictCaption");
+
+
+    /* =========================================================
+       VARIABLES
+       ========================================================= */
+
+    var currentFile = null;
+
+    var currentObjectUrl = null;
+
+    var RING_CIRC = 326.7;
+
+    var ALLOWED_EXT = [
+        "mp4",
+        "avi",
+        "mov"
+    ];
+
+
+    /* =========================================================
+       HISTORY
+       ========================================================= */
+
+    window.dfLogHistory = function (entry) {
+
+        try {
+
+            var list =
+                JSON.parse(
+                    localStorage.getItem("df_history")
+                ) || [];
+
+
+            entry.timestamp =
+                new Date().toISOString();
+
+
+            list.unshift(entry);
+
+
+            if (list.length > 50) {
+
+                list =
+                    list.slice(0, 50);
+
+            }
+
+
+            localStorage.setItem(
+                "df_history",
+                JSON.stringify(list)
+            );
+
+        } catch (e) {
+
+            console.log(
+                "History error:",
+                e
+            );
+
+        }
+
+    };
+
+
+    /* =========================================================
+       GET EXTENSION
+       ========================================================= */
+
+    function getExt(name) {
+
+        var parts =
+            name.split(".");
+
+
+        if (parts.length < 2) {
+
+            return "";
+
+        }
+
+
+        return parts
+            .pop()
+            .toLowerCase();
+
+    }
+
+
+    /* =========================================================
+       SHOW ERROR
+       ========================================================= */
+
+    function showError(message) {
+
+        errorBanner.textContent =
+            message;
+
+        errorBanner.classList.add("show");
+
+    }
+
+
+    function hideError() {
+
+        errorBanner.textContent = "";
+
+        errorBanner.classList.remove("show");
+
+    }
+
+
+    /* =========================================================
+       RESET RESULT
+       ========================================================= */
+
+    function resetResult() {
+
+        resultPanel.classList.remove("show");
+
+        scanStatus.classList.remove("show");
+
+        loadingBar.classList.remove("show");
+
+
+        ring.classList.remove(
+            "ok",
+            "danger"
+        );
+
+
+        verdictEl.classList.remove(
+            "ok",
+            "danger"
+        );
+
+
+        ringFill.style.strokeDashoffset =
+            RING_CIRC;
+
+
+        ringPercent.textContent =
+            "0%";
+
+
+        verdictWord.textContent =
+            "—";
+
+
+        verdictCaption.textContent =
+            "";
+
+
+        verdictIcon.innerHTML =
+            "";
+
+    }
+
+
+    /* =========================================================
+       HANDLE FILE
+       ========================================================= */
+
+    function handleFile(file) {
+
+        hideError();
+
+        resetResult();
+
+
+        if (!file) {
+
+            return;
+
+        }
+
+
+        var ext =
+            getExt(file.name);
+
+
+        if (ALLOWED_EXT.indexOf(ext) === -1) {
+
+            showError(
+                "Unsupported video type. Allowed: MP4, AVI, MOV."
+            );
+
+            detectBtn.disabled = true;
+
+            currentFile = null;
+
+            return;
+
+        }
+
+
+        if (currentObjectUrl) {
+
+            URL.revokeObjectURL(
+                currentObjectUrl
+            );
+
+        }
+
+
+        currentFile = file;
+
+
+        currentObjectUrl =
+            URL.createObjectURL(file);
+
+
+        fileNameEl.textContent =
+            file.name;
+
+
+        fileInfo.classList.add(
+            "show"
+        );
+
+
+        previewWrap.innerHTML =
+            "";
+
+
+        var video =
+            document.createElement(
+                "video"
+            );
+
+
+        video.src =
+            currentObjectUrl;
+
+        video.controls = true;
+
+        video.preload = "metadata";
+
+        video.playsInline = true;
+
+
+        previewWrap.appendChild(
+            video
+        );
+
+
+        previewWrap.classList.add(
+            "show"
+        );
+
+
+        detectBtn.disabled = false;
+
+
+        console.log(
+            "Video selected:",
+            file.name
+        );
+
+    }
+
+
+    /* =========================================================
+       UPLOAD BUTTON
+       ========================================================= */
+
+    uploadBtn.addEventListener(
+        "click",
+        function () {
+
+            fileInput.click();
+
+        }
+    );
+
+
+    fileInput.addEventListener(
+        "change",
+        function (event) {
+
+            if (
+                event.target.files &&
+                event.target.files[0]
+            ) {
+
+                handleFile(
+                    event.target.files[0]
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       DROPZONE
+       ========================================================= */
+
+    dropzone.addEventListener(
+        "click",
+        function () {
+
+            fileInput.click();
+
+        }
+    );
+
+
+    [
+        "dragenter",
+        "dragover"
+    ].forEach(function (eventName) {
+
+        dropzone.addEventListener(
+            eventName,
+            function (event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                dropzone.classList.add(
+                    "dragover"
+                );
+
+            }
+        );
+
+    });
+
+
+    [
+        "dragleave",
+        "dragend"
+    ].forEach(function (eventName) {
+
+        dropzone.addEventListener(
+            eventName,
+            function (event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                dropzone.classList.remove(
+                    "dragover"
+                );
+
+            }
+        );
+
+    });
+
+
+    dropzone.addEventListener(
+        "drop",
+        function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            dropzone.classList.remove(
+                "dragover"
+            );
+
+
+            if (
+                event.dataTransfer.files &&
+                event.dataTransfer.files[0]
+            ) {
+
+                handleFile(
+                    event.dataTransfer.files[0]
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       REAL VIDEO DETECTION
+       
+       IMPORTANT:
+       NO Math.random()
+       NO simulated result
+
+       The video is sent to Flask.
+       ========================================================= */
+
+    async function detectDeepfake(file) {
+
+        console.log("");
+        console.log(
+            "======================================"
+        );
+
+        console.log(
+            "VIDEO DETECTION STARTED"
+        );
+
+        console.log(
+            "File:",
+            file.name
+        );
+
+        console.log(
+            "Size:",
+            file.size,
+            "bytes"
+        );
+
+        console.log(
+            "Type:",
+            file.type
+        );
+
+        console.log(
+            "Sending video to Flask..."
+        );
+
+        console.log(
+            "Endpoint:",
+            "/api/detect/video"
+        );
+
+        console.log(
+            "======================================"
+        );
+
+
+        var formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file,
+            file.name
+        );
+
+
+        var response;
+
+
+        try {
+
+            response =
+                await fetch(
+                    "/api/detect/video",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+        } catch (networkError) {
+
+            console.error(
+                "NETWORK ERROR:",
+                networkError
+            );
+
+            throw new Error(
+                "Cannot connect to Flask server. Make sure python app.py is running."
+            );
+
+        }
+
+
+        console.log(
+            "Flask response status:",
+            response.status
+        );
+
+
+        var data;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch (jsonError) {
+
+            throw new Error(
+                "Flask returned an invalid response."
+            );
+
+        }
+
+
+        console.log(
+            "======================================"
+        );
+
+        console.log(
+            "VIDEO SERVER RESPONSE"
+        );
+
+        console.log(
+            data
+        );
+
+        console.log(
+            "======================================"
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Video detection failed."
+            );
+
+        }
+
+
+        if (
+            !data.result ||
+            (
+                data.result !== "fake" &&
+                data.result !== "real"
+            )
+        ) {
+
+            throw new Error(
+                "Invalid result received from server."
+            );
+
+        }
+
+
+        return data;
+
+    }
+
+
+    /* =========================================================
+       DETECT BUTTON
+       ========================================================= */
+
+    detectBtn.addEventListener(
+        "click",
+        async function () {
+
+            if (!currentFile) {
+
+                showError(
+                    "Please upload a video first."
+                );
+
+                return;
+
+            }
+
+
+            hideError();
+
+            resultPanel.classList.remove(
+                "show"
+            );
+
+
+            scanStatus.classList.add(
+                "show"
+            );
+
+
+            loadingBar.classList.add(
+                "show"
+            );
+
+
+            detectBtn.disabled = true;
+
+
+            try {
+
+                var data =
+                    await detectDeepfake(
+                        currentFile
+                    );
+
+
+                /*
+                 * -------------------------------------
+                 * NORMALIZE RESULT
+                 * -------------------------------------
+                 */
+
+                var result =
+                    String(data.result)
+                        .trim()
+                        .toLowerCase();
+
+
+                var isFake =
+                    result === "fake";
+
+
+                /*
+                 * -------------------------------------
+                 * CONFIDENCE
+                 * -------------------------------------
+                 */
+
+                var confidence =
+                    Number(data.confidence);
+
+
+                if (
+                    isNaN(confidence)
+                ) {
+
+                    confidence = 0;
+
+                }
+
+
+                confidence =
+                    Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            confidence
+                        )
+                    );
+
+
+                /*
+                 * -------------------------------------
+                 * STOP LOADING
+                 * -------------------------------------
+                 */
+
+                scanStatus.classList.remove(
+                    "show"
+                );
+
+                loadingBar.classList.remove(
+                    "show"
+                );
+
+
+                /*
+                 * -------------------------------------
+                 * RESET RESULT CLASSES
+                 * -------------------------------------
+                 */
+
+                ring.classList.remove(
+                    "ok",
+                    "danger"
+                );
+
+                verdictEl.classList.remove(
+                    "ok",
+                    "danger"
+                );
+
+
+                /*
+                 * -------------------------------------
+                 * APPLY RESULT
+                 * -------------------------------------
+                 */
+
+                if (isFake) {
+
+                    ring.classList.add(
+                        "danger"
+                    );
+
+                    verdictEl.classList.add(
+                        "danger"
+                    );
+
+
+                    verdictWord.textContent =
+                        "FAKE";
+
+
+                    verdictCaption.textContent =
+                        "This video is likely to be Fake.";
+
+
+                    verdictIcon.innerHTML =
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">' +
+                        '<path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4z"/>' +
+                        '<path d="M12 8v4.5" stroke-linecap="round"/>' +
+                        '<circle cx="12" cy="15.3" r="0.9" fill="currentColor" stroke="none"/>' +
+                        '</svg>';
+
+                } else {
+
+                    ring.classList.add(
+                        "ok"
+                    );
+
+                    verdictEl.classList.add(
+                        "ok"
+                    );
+
+
+                    verdictWord.textContent =
+                        "REAL";
+
+
+                    verdictCaption.textContent =
+                        "This video is likely to be Real.";
+
+
+                    verdictIcon.innerHTML =
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">' +
+                        '<path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4z"/>' +
+                        '<path d="M8.5 12l2.3 2.3L15.5 9.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+                        '</svg>';
+
+                }
+
+
+                /*
+                 * -------------------------------------
+                 * CONFIDENCE RING
+                 * -------------------------------------
+                 */
+
+                ringPercent.textContent =
+                    confidence.toFixed(1) +
+                    "%";
+
+
+                ringFill.style.strokeDashoffset =
+                    RING_CIRC -
+                    (
+                        RING_CIRC *
+                        confidence /
+                        100
+                    );
+
+
+                /*
+                 * -------------------------------------
+                 * DETAILS
+                 * -------------------------------------
+                 */
+
+                document.getElementById(
+                    "rTime"
+                ).textContent =
+                    (
+                        data.processing_time_ms ||
+                        0
+                    ) + " ms";
+
+
+                document.getElementById(
+                    "rModel"
+                ).textContent =
+                    data.model ||
+                    "ResNet18 Video Frame Analysis";
+
+
+                document.getElementById(
+                    "rFile"
+                ).textContent =
+                    currentFile.name;
+
+
+                /*
+                 * -------------------------------------
+                 * SHOW RESULT
+                 * -------------------------------------
+                 */
+
+                resultPanel.classList.add(
+                    "show"
+                );
+
+
+                /*
+                 * -------------------------------------
+                 * CONSOLE OUTPUT
+                 * -------------------------------------
+                 */
+
+                console.log("");
+
+                console.log(
+                    "======================================"
+                );
+
+                console.log(
+                    "FINAL VIDEO RESULT"
+                );
+
+                console.log(
+                    "Result:",
+                    result.toUpperCase()
+                );
+
+                console.log(
+                    "Confidence:",
+                    confidence.toFixed(2) + "%"
+                );
+
+                console.log(
+                    "Processing:",
+                    data.processing_time_ms,
+                    "ms"
+                );
+
+                console.log(
+                    "Model:",
+                    data.model
+                );
+
+                console.log(
+                    "======================================"
+                );
+
+
+                /*
+                 * -------------------------------------
+                 * HISTORY
+                 * -------------------------------------
+                 */
+
+                if (
+                    typeof window.dfLogHistory ===
+                    "function"
+                ) {
+
+                    window.dfLogHistory({
+
+                        module: "video",
+
+                        fileName:
+                            currentFile.name,
+
+                        result:
+                            result,
+
+                        confidence:
+                            confidence,
+
+                        time:
+                            data.processing_time_ms
+
+                    });
+
+                }
+
+
+                detectBtn.disabled = false;
+
+            } catch (error) {
+
+                console.error(
+                    "VIDEO DETECTION ERROR:",
+                    error
+                );
+
+
+                scanStatus.classList.remove(
+                    "show"
+                );
+
+                loadingBar.classList.remove(
+                    "show"
+                );
+
+
+                detectBtn.disabled = false;
+
+
+                resultPanel.classList.remove(
+                    "show"
+                );
+
+
+                showError(
+                    error.message ||
+                    "Video detection failed. Please try again."
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       CLEAR
+       ========================================================= */
+
+    clearBtn.addEventListener(
+        "click",
+        function () {
+
+            hideError();
+
+            resetResult();
+
+
+            currentFile = null;
+
+
+            if (currentObjectUrl) {
+
+                URL.revokeObjectURL(
+                    currentObjectUrl
+                );
+
+                currentObjectUrl = null;
+
+            }
+
+
+            fileInput.value = "";
+
+
+            fileInfo.classList.remove(
+                "show"
+            );
+
+
+            fileNameEl.textContent =
+                "";
+
+
+            previewWrap.classList.remove(
+                "show"
+            );
+
+
+            previewWrap.innerHTML =
+                "";
+
+
+            detectBtn.disabled = true;
+
+        }
+    );
+
+
+    /* =========================================================
+       BACK HOME
+       ========================================================= */
+
+    backHomeBtn.addEventListener(
+        "click",
+        function () {
+
+            window.location.href =
+                "home.html";
+
+        }
+    );
+
+})();
+
+</script>
+
+</body>
+</html>

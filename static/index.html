@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Deepfake Detection</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f9ff;
+            color: #071a3d;
+        }
+
+        nav {
+            background: #071a3d;
+            padding: 20px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: #00d9ff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+        nav a:hover {
+            color: #00d9ff;
+        }
+
+        .hero {
+            min-height: 85vh;
+            background: linear-gradient(135deg, #071a3d, #0b3c70);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 55px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 span {
+            color: #00d9ff;
+        }
+
+        .hero p {
+            font-size: 19px;
+            line-height: 1.7;
+            color: #d9eaf7;
+            margin-bottom: 35px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #00d9ff;
+            color: #071a3d;
+            padding: 15px 35px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: white;
+        }
+
+        .features {
+            padding: 70px 8%;
+            text-align: center;
+        }
+
+        .features h2 {
+            font-size: 35px;
+            margin-bottom: 15px;
+        }
+
+        .features > p {
+            color: #607080;
+            margin-bottom: 40px;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            width: 280px;
+            padding: 30px 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            color: #607080;
+            line-height: 1.6;
+        }
+
+        .about {
+            background: #eaf5ff;
+            padding: 70px 8%;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-size: 35px;
+            margin-bottom: 20px;
+        }
+
+        .about p {
+            max-width: 850px;
+            margin: auto;
+            color: #526777;
+            line-height: 1.8;
+        }
+
+        footer {
+            background: #071a3d;
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+
+        @media (max-width: 700px) {
+            nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">Deepfake Detection</div>
+
+        <div>
+            <a href="#home">Home</a>
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+        </div>
+    </nav>
+
+
+    <!-- Home -->
+    <section class="hero" id="home">
+
+        <div class="hero-content">
+
+            <h1>
+                Detect <span>Deepfakes</span>
+            
+            </h1>
+
+            <p>
+                An AI-powered system that analyzes digital media
+                and helps identify whether the content is
+                real or manipulated.
+            </p>
+
+            <a href="/reg5.html" class="btn">
+                Start Detection
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- Features -->
+    <section class="features" id="features">
+
+        <h2>Detection Features</h2>
+
+        <p>Our system supports multiple types of digital media.</p>
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="icon">🖼️</div>
+                <h3>Image Detection</h3>
+                <p>
+                    Analyze images and identify whether
+                    they are real or fake.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="icon">🎥</div>
+                <h3>Video Detection</h3>
+                <p>
+                    Analyze videos and detect possible
+                    deepfake manipulation.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="icon">🎵</div>
+                <h3>Audio Detection</h3>
+                <p>
+                    Analyze audio using an AI model to
+                    identify manipulated audio.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- About -->
+    <section class="about" id="about">
+
+        <h2>About the Project</h2>
+
+        <p>
+            Deepfake Detection is an AI-based project designed
+            to identify manipulated digital content. The system
+            can analyze images, videos and audio to help determine
+            whether the uploaded media is real or fake.
+        </p>
+
+    </section>
+
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 Deepfake Detection Project</p>
+    </footer>
+
+</body>
+</html>
