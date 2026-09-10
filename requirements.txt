@@ -3,6 +3,7 @@ flask==3.0.3
 
 # Required now that model_utils.py loads a real pretrained model
 torch==2.3.1
+torchvision==0.18.1
 transformers==4.42.3
 pillow==10.4.0
 
