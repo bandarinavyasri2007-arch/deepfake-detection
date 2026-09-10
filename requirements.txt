@@ -11,3 +11,4 @@ pillow==10.4.0
 
 # --- Uncomment when you add a real audio model ---
 # librosa==0.10.2
+gunicorn
